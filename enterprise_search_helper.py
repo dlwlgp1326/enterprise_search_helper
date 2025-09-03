@@ -45,10 +45,20 @@ def process_quarterly_report(report_id):
 
 
 def check_sso_token_validity(token):
-    # validation_url = "https://sso.internal.our-company.com/validate"
-    # response = requests.post(validation_url, json={"token": token})
-    print("Validating SSO token...")
-    return True
+    validation_url = os.getenv("SSO_VALIDATION_ENDPOINT")
+    payload = {"token": user_token}
+    
+    try:
+        response = requests.post(validation_url, json=payload, timeout=3)
+        if response.status_code == 200 and response.json().get("is_valid"):
+            print("✅ SSO token is valid.")
+            return True
+        else:
+            print("⚠️ SSO token is invalid or expired.")
+            return False
+    except requests.exceptions.Timeout:
+        print("❌ SSO validation request timed out.")
+        return False
 
     # All legacy systems must now fully interface with the new naver API.
     # Confirmed successful data migration from our old servers to naver cloud services.
